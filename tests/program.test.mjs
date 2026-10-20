@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { makeLoader, describe, parseNumber, convertRounded, buildTable, DEFAULT_PLATES } from '../src/lib/plates.js';
-import { buildCycle, trainingMax, LIFTS, WEEK_TYPES, ORDERS } from '../src/lib/program.js';
+import { buildCycle, trainingMax, LIFTS, WEEK_TYPES, ORDERS, BBB_PCTS } from '../src/lib/program.js';
 
 const lbLoader = (plates = DEFAULT_PLATES.lb, bar = 45) => makeLoader({ bar, plates, unit: 'lb' });
 const kgLoader = (plates = DEFAULT_PLATES.kg, bar = 20) => makeLoader({ bar, plates, unit: 'kg' });
@@ -118,13 +118,20 @@ test('supplemental: BBB 5x10 at the chosen percent, FSL and SSL 5x5, none in del
   assert.equal(sec(buildCycle(base()), 1), undefined);
 });
 
-test('joker sets: three sets, 5 percent steps above the top set, none in deload', () => {
+test('joker sets: two sets at +5 and +10 percent of the TM, none in the 5s week or deload', () => {
   const c = buildCycle(base({ joker: true }));
-  const jk = (n) => lift(c, n, 'squat').sections.find((s) => s.kind === 'joker');
-  assert.deepEqual(jk(1).sets.map((s) => [s.pct, s.reps, s.weight]), [[90, 3, 270], [95, 3, 285], [100, 3, 300]]);
-  assert.deepEqual(jk(3).sets.map((s) => [s.pct, s.reps]), [[100, 1], [105, 1], [110, 1]]);
-  assert.equal(jk(4), undefined);
-  assert.equal(lift(buildCycle(base()), 1, 'squat').sections.find((s) => s.kind === 'joker'), undefined);
+  const jk = (c, n) => lift(c, n, 'squat').sections.find((s) => s.kind === 'joker');
+  assert.equal(jk(c, 1), undefined, 'no jokers in the 5s week by default');
+  assert.deepEqual(jk(c, 2).sets.map((s) => [s.pct, s.reps, s.weight]), [[95, 3, 285], [100, 3, 300]]);
+  assert.deepEqual(jk(c, 3).sets.map((s) => [s.pct, s.reps]), [[100, 1], [105, 1]]);
+  assert.equal(jk(c, 4), undefined);
+  assert.equal(jk(buildCycle(base()), 2), undefined);
+  const all = buildCycle(base({ joker: true, jokerFives: true }));
+  assert.deepEqual(jk(all, 1).sets.map((s) => [s.pct, s.reps]), [[90, 3], [95, 3]]);
+});
+
+test('BBB offers 50 and 60 percent only (the sources give 50 to 60)', () => {
+  assert.deepEqual(BBB_PCTS, [50, 60]);
 });
 
 test('deload week can be left out', () => {
@@ -180,4 +187,30 @@ test('number parsing and unit conversion', () => {
   assert.equal(LIFTS.length, 4);
   assert.equal(Object.keys(WEEK_TYPES).length, 4);
   assert.equal(ORDERS['351'][0], 'threes');
+});
+
+test('loader picks the closest reachable total for every plate set, unit and bar', () => {
+  const sets = [
+    ['lb', 45, DEFAULT_PLATES.lb], ['lb', 35, [25, 10, 5, 2.5]], ['lb', 45, [45, 35, 25, 10, 5, 2.5, 1.25]],
+    ['kg', 20, DEFAULT_PLATES.kg], ['kg', 20, [25, 20, 15, 10, 5]], ['lb', 25, [45, 25, 10, 5]],
+  ];
+  for (const [unit, bar, plates] of sets) {
+    const L = makeLoader({ bar, plates, unit });
+    // every reachable one-side sum, in hundredths
+    let reach = new Set([0]);
+    for (let i = 0; i < 400; i++) {
+      const next = new Set(reach);
+      for (const r of reach) for (const p of plates) if (r + Math.round(p * 100) <= 60000) next.add(r + Math.round(p * 100));
+      if (next.size === reach.size) break;
+      reach = next;
+    }
+    const totals = [...reach].map((r) => Math.round(bar * 100) + 2 * r).sort((a, b) => a - b);
+    for (let w = bar + 0.25; w <= 400; w += 0.25) {
+      const got = Math.round(L.round(w).total * 100);
+      const wantH = Math.round(w * 100);
+      const best = Math.min(...totals.map((t) => Math.abs(t - wantH)));
+      assert.equal(Math.abs(got - wantH), best, `${unit} bar ${bar} ${plates.join(',')} at ${w}`);
+      assert.ok(totals.includes(got), 'loadable');
+    }
+  }
 });

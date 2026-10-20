@@ -46,6 +46,7 @@ import { LIFTS } from '../lib/program.js';
         </div>
       </fieldset>
 
+      <p class="text-xs text-muted">The boxes start with example numbers. Replace them with yours.</p>
       <a href="#results" class="btn flex items-center justify-center no-underline md:hidden">Jump to your cycle</a>
 
       <details id="opt-plan" class="opt rounded-xl border border-line">
@@ -76,15 +77,15 @@ import { LIFTS } from '../lib/program.js';
           </fieldset>
           <fieldset id="bbb-wrap">
             <legend class="mb-2 text-sm font-semibold">BBB weight, share of the TM</legend>
-            <div class="grid grid-cols-3 gap-2" id="bbb-group">
+            <div class="grid grid-cols-2 gap-2" id="bbb-group">
               <label class="seg"><input type="radio" name="bbb" value="50" class="peer sr-only" checked /><span class="seg-face">50%</span></label>
               <label class="seg"><input type="radio" name="bbb" value="60" class="peer sr-only" /><span class="seg-face">60%</span></label>
-              <label class="seg"><input type="radio" name="bbb" value="70" class="peer sr-only" /><span class="seg-face">70%</span></label>
             </div>
           </fieldset>
           <div class="space-y-1">
             <label class="chk"><input id="warm" type="checkbox" checked /> Warm-up sets</label>
-            <label class="chk"><input id="joker" type="checkbox" /> Joker sets</label>
+            <label class="chk"><input id="joker" type="checkbox" /> Joker sets (2 extra sets, +5% and +10% of the TM)</label>
+            <label class="chk"><input id="jokerFives" type="checkbox" /> Also allow jokers in the 5s week (the cited advice says skip them there)</label>
             <label class="chk"><input id="deload" type="checkbox" checked /> Deload week (week 4)</label>
           </div>
         </div>
@@ -152,7 +153,6 @@ import { LIFTS } from '../lib/program.js';
   .chk input { width:1.5rem; height:1.5rem; flex:none; accent-color: var(--brand); }
   .btn { min-height:2.75rem; padding:.4rem 1rem; border-radius:.75rem; border:1px solid var(--edge); background:var(--paper); font-weight:600; font-size:.95rem; cursor:pointer; color:var(--ink); }
   .btn:hover { border-color: var(--brand); }
-  .btn-brand { border-color: var(--brand); background: var(--brand); color:#fff; }
   .lift-card { min-width:0; border:1px solid var(--line); border-radius:.75rem; background:var(--paper); overflow:hidden; }
   .lift-card h3 { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; padding:.7rem .85rem .5rem; font-size:1.05rem; font-weight:700; }
   .lift-card h3 span { font-size:.8rem; font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums; }
@@ -178,7 +178,7 @@ import { LIFTS } from '../lib/program.js';
 </style>
 <script>
   import { PLATES, DEFAULT_PLATES, BARS, STEP, MAX_WEIGHT, makeLoader, convertRounded, parseNumber, describe, fmt } from '../lib/plates.js';
-  import { LIFTS, buildCycle, BBB_PCTS, SUPP } from '../lib/program.js';
+  import { LIFTS, buildCycle, BBB_PCTS, SUPP, BUMP } from '../lib/program.js';
 
   type Unit = 'lb' | 'kg';
   type Vals = Record<string, number>;
@@ -209,6 +209,7 @@ import { LIFTS } from '../lib/program.js';
     bbbPct: 50,
     warm: true,
     joker: false,
+    jokerFives: false,
     deload: true,
     week: 0,
     bar: { lb: '45', kg: '20' } as Record<Unit, string>,
@@ -231,6 +232,7 @@ import { LIFTS } from '../lib/program.js';
       if (BBB_PCTS.includes(s.bbbPct)) state.bbbPct = s.bbbPct;
       state.warm = s.warm !== false;
       state.joker = s.joker === true;
+      state.jokerFives = s.jokerFives === true;
       state.deload = s.deload !== false;
       for (const u of ['lb', 'kg'] as Unit[]) {
         if (s.bar && typeof s.bar[u] === 'string' && (s.bar[u] === 'custom' || (BARS[u] as number[]).map(String).includes(s.bar[u]))) state.bar[u] = s.bar[u];
@@ -260,6 +262,7 @@ import { LIFTS } from '../lib/program.js';
     checkRadio('order', state.order); checkRadio('main', state.main); checkRadio('supp', state.supp); checkRadio('bbb', String(state.bbbPct));
     $<HTMLInputElement>('warm').checked = state.warm;
     $<HTMLInputElement>('joker').checked = state.joker;
+    $<HTMLInputElement>('jokerFives').checked = state.jokerFives;
     $<HTMLInputElement>('deload').checked = state.deload;
     $('lift-kind').textContent = `(${state.mode === 'rm' ? '1RM' : 'TM'}, ${u})`;
     for (const l of LIFTS) { const v = state.lifts[l.id]; $<HTMLInputElement>(`in-${l.id}`).value = v > 0 ? fmt(v) : ''; }
@@ -289,7 +292,7 @@ import { LIFTS } from '../lib/program.js';
     const loader = makeLoader({ bar: Number.isFinite(bar) ? bar : 0, plates: state.plates[u], unit: u });
     const c = buildCycle({
       unit: u, mode: state.mode, tmPct: state.tmPct, values: state.lifts, order: state.order, main: state.main, supp: state.supp,
-      bbbPct: state.bbbPct, warm: state.warm, joker: state.joker, deload: state.deload, loader,
+      bbbPct: state.bbbPct, warm: state.warm, joker: state.joker, jokerFives: state.jokerFives, deload: state.deload, loader,
     });
     return { c, bar, loader };
   }
@@ -327,7 +330,8 @@ import { LIFTS } from '../lib/program.js';
       status.textContent = 'Enter at least one lift to see the cycle.';
     } else {
       const tops = week.lifts.filter((l) => l.sections.length).map((l) => {
-        const w = l.sections.find((s: any) => s.kind === 'work')!.sets[2];
+        const workSets = l.sections.find((s: any) => s.kind === 'work')!.sets;
+        const w = workSets[workSets.length - 1];
         return `${l.name} ${fmt(w.weight)}${w.amrap ? ` for ${w.reps}+` : ''}`;
       });
       status.textContent = `Week ${week.number}, ${week.label}. Top sets in ${u}: ${tops.join(', ')}.` + (loader.noPlates ? ' No plates are on, so weights round to the nearest ' + STEP[u] + ' ' + u + '.' : '');
@@ -349,15 +353,15 @@ import { LIFTS } from '../lib/program.js';
     for (const l of c.next) {
       const el = $(`tm-${l.id}`);
       const raw = state.lifts[l.id];
-      el.textContent = l.tm > 0 ? (state.mode === 'rm' ? `Training max ${fmt(l.tm)} ${u}` : '') : (Number.isNaN(raw) ? 'Enter a number' : '');
+      el.textContent = l.tm > 0 ? (state.mode === 'rm' ? `Training max ${fmt(l.tm)} ${u}` : '') : (Number.isNaN(raw) ? `Enter a number from 1 to ${MAX_WEIGHT}` : '');
     }
 
     // Next cycle
     $('next').innerHTML = `<h3 id="next-h">Next cycle training maxes</h3>` +
       `<table class="next-tbl"><caption class="sr-only">Training max now and after this cycle</caption><thead><tr><th scope="col">Lift</th><th scope="col">Now (${u})</th><th scope="col">Next (${u})</th></tr></thead><tbody>` +
       c.next.map((n) => `<tr><th scope="row" class="font-medium">${esc(n.name)}</th><td class="n">${n.tm > 0 ? fmt(n.tm) : '-'}</td><td class="n">${n.tm > 0 ? `${fmt(n.next)} <span class="font-sans text-xs font-medium text-muted">+${fmt(n.bump)}</span>` : '-'}</td></tr>`).join('') +
-      `</tbody></table><p class="mt-2 text-sm text-muted">Add ${fmt(c.next[1].bump)} ${u} to bench press and overhead press, and ${fmt(c.next[0].bump)} ${u} to squat and deadlift, after the last week.</p>` +
-      `<button type="button" id="apply-next" class="btn mt-3">Use these as my training maxes</button>`;
+      `</tbody></table><p class="mt-2 text-sm text-muted">Add ${fmt(BUMP[u].upper)} ${u} to bench press and overhead press, and ${fmt(BUMP[u].lower)} ${u} to squat and deadlift, after the last week.</p>` +
+      (c.next.some((n) => n.tm > 0) ? `<button type="button" id="apply-next" class="btn mt-3">Use these as my training maxes</button>` : '');
 
     // Summaries on the closed option panels
     const suppTxt = state.supp === 'none' ? 'No supplemental' : state.supp === 'bbb' ? `BBB ${state.bbbPct}%` : state.supp.toUpperCase();
@@ -373,7 +377,7 @@ import { LIFTS } from '../lib/program.js';
     const showPlates = !loader.noPlates;
     const suppTxt = state.supp === 'none' ? 'no supplemental sets' : state.supp === 'bbb' ? `BBB 5 × 10 at ${state.bbbPct}%` : `${state.supp.toUpperCase()} 5 × 5`;
     const opts = [state.order === '531' ? '5/3/1 order' : '3/5/1 order', state.main === 'pro' ? '5s PRO' : 'standard sets', suppTxt,
-      state.joker ? 'joker sets' : 'no jokers', state.warm ? 'warm-ups' : 'no warm-ups', state.deload ? 'with deload' : 'no deload'].join(', ');
+      state.joker ? (state.jokerFives ? 'joker sets in all weeks' : 'joker sets (not in the 5s week)') : 'no jokers', state.warm ? 'warm-ups' : 'no warm-ups', state.deload ? 'with deload' : 'no deload'].join(', ');
     const lines = (sections: any[]) => sections.map((sec) =>
       `<div class="ps-sec">${esc(sec.kind === 'work' ? 'Main' : sec.title)}</div>` + sec.sets.map((s: any) => {
         const reps = sec.kind === 'supp' ? `${s.count}×${s.reps}` : `${s.reps}${s.amrap ? '+' : ''}`;
@@ -386,7 +390,7 @@ import { LIFTS } from '../lib/program.js';
       return `<section class="ps-lift"><h2>${esc(l.name)} <span>training max ${fmt(first.tm)} ${u}</span></h2><table><tbody><tr>${cols}</tr></tbody></table></section>`;
     }).join('');
     const nxt = c.next.filter((n) => n.tm > 0).map((n) => `${esc(n.name)} ${fmt(n.next)}`).join(' · ');
-    $('print-sheet').innerHTML = `<header class="ps-head"><h1>5/3/1 program sheet</h1><p>Weights in ${u}, bar ${Number.isFinite(bar) ? fmt(bar) : '?'} ${u}. Plates are per side. Start date: ______________ &nbsp; Plan: ${esc(opts)}.</p></header>` +
+    $('print-sheet').innerHTML = `<header class="ps-head"><p class="ps-title">5/3/1 program sheet</p><p>Weights in ${u}, bar ${Number.isFinite(bar) ? `${fmt(bar)} ${u}` : 'not set'}. Plates are per side. Start date: ______________ &nbsp; Plan: ${esc(opts)}.</p></header>` +
       blocks + `<footer class="ps-foot">Next cycle training maxes (${u}): ${nxt || '-'}. Made with 531programcalculator.com. Unofficial tool. Not medical advice.</footer>`;
   }
   window.addEventListener('beforeprint', buildPrint);
@@ -437,7 +441,7 @@ import { LIFTS } from '../lib/program.js';
   $('supp-group').addEventListener('change', (e) => { state.supp = (e.target as HTMLInputElement).value as any; syncDisabled(); render(); });
   radio('bbb-group', (v) => { state.bbbPct = Number(v); });
   $('week-tabs').addEventListener('change', (e) => { state.week = Number((e.target as HTMLInputElement).value); render(); });
-  for (const id of ['warm', 'joker', 'deload']) {
+  for (const id of ['warm', 'joker', 'jokerFives', 'deload']) {
     $(id).addEventListener('change', (e) => { (state as any)[id] = (e.target as HTMLInputElement).checked; render(); });
   }
   $('bar-group').addEventListener('change', (e) => {

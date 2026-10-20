@@ -1,5 +1,9 @@
 // The 5/3/1 cycle. Pure functions, no DOM. Percentages are of the training max (TM).
-// Source for the scheme: the book "5/3/1" by Jim Wendler (unofficial implementation, not affiliated).
+// Sources (secondary guides; the books were not available to check, see the page notes):
+//  - Main sets, warm-ups, deload, TM at 90% of 1RM, TM bumps, 3/5/1, 5s PRO, BBB 50-60%, FSL, SSL:
+//    liftvault.com/resources/531-calculator/ and arvo.guru/resources/methods/wendler-531.
+//  - Joker sets: liftvault.com joker page (5% to 10% above the top set, 1 to 3 reps, earned not expected).
+// Unofficial implementation, not affiliated with the author or publisher.
 import { STEP, fmt } from './plates.js';
 
 export const LIFTS = [
@@ -9,7 +13,7 @@ export const LIFTS = [
   { id: 'press', name: 'Overhead press', group: 'upper' },
 ];
 
-// Main work per week type. The last set of weeks 1 to 3 is an "as many reps as possible" set (shown with +).
+// Main work per week type. The last set of weeks 1 to 3 is an "as many reps as possible" set (shown with +), unless 5s PRO is on.
 export const WEEK_TYPES = {
   fives: { label: '5s week', pcts: [65, 75, 85], reps: [5, 5, 5], joker: { reps: 3 } },
   threes: { label: '3s week', pcts: [70, 80, 90], reps: [3, 3, 3], joker: { reps: 3 } },
@@ -22,14 +26,15 @@ export const ORDERS = {
   '351': ['threes', 'fives', 'ones', 'deload'],
 };
 export const WARMUP = { pcts: [40, 50, 60], reps: [5, 5, 3] };
-export const JOKER_STEP = 5;     // each joker set adds 5 percent of the TM
-export const JOKER_SETS = 3;
+// Joker sets: two sets above the top set, +5 and +10 percentage points of the TM (the source says 5% to 10%).
+// Not in the 5s week by default (the cited advice), unless the person turns that on.
+export const JOKER_STEPS = [5, 10];
 export const SUPP = {
   bbb: { label: 'Boring But Big', sets: 5, reps: 10 },
   fsl: { label: 'First Set Last', sets: 5, reps: 5 },
   ssl: { label: 'Second Set Last', sets: 5, reps: 5 },
 };
-export const BBB_PCTS = [50, 60, 70];
+export const BBB_PCTS = [50, 60]; // 50 to 60 percent of the TM, from the cited guides
 // TM bump after a cycle: 5 lb for upper lifts and 10 lb for lower lifts (2.5 and 5 kg).
 export const BUMP = { lb: { upper: 5, lower: 10 }, kg: { upper: 2.5, lower: 5 } };
 
@@ -42,7 +47,7 @@ export function trainingMax(value, mode, pct, unit) {
 }
 
 // Build the whole cycle. loader.round(weight) gives the loadable total and plates.
-export function buildCycle({ unit, mode, tmPct = 90, values, order = '531', main = 'std', supp = 'none', bbbPct = 50, warm = true, joker = false, deload = true, loader }) {
+export function buildCycle({ unit, mode, tmPct = 90, values, order = '531', main = 'std', supp = 'none', bbbPct = 50, warm = true, joker = false, jokerFives = false, deload = true, loader }) {
   const tms = {};
   for (const l of LIFTS) tms[l.id] = trainingMax(values[l.id], mode, tmPct, unit);
   const keys = ORDERS[order].filter((k) => deload || k !== 'deload');
@@ -64,16 +69,16 @@ export function buildCycle({ unit, mode, tmPct = 90, values, order = '531', main
         kind: 'work', title: main === 'pro' ? 'Main sets (5s PRO)' : 'Main sets',
         sets: wt.pcts.map((p, j) => set(tm, p, main === 'pro' && key !== 'deload' ? 5 : wt.reps[j], { amrap: amrapOn && j === 2 })),
       });
-      if (joker && wt.joker) {
+      if (joker && wt.joker && (key !== 'fives' || jokerFives)) {
         const top = wt.pcts[2];
         const sets = [];
-        for (let j = 1; j <= JOKER_SETS; j++) sets.push(set(tm, top + JOKER_STEP * j, wt.joker.reps));
+        for (const step of JOKER_STEPS) sets.push(set(tm, top + step, wt.joker.reps));
         sections.push({ kind: 'joker', title: 'Joker sets (optional)', sets });
       }
       if (supp !== 'none' && key !== 'deload') {
         const s = SUPP[supp];
         const pct = supp === 'bbb' ? bbbPct : supp === 'fsl' ? wt.pcts[0] : wt.pcts[1];
-        sections.push({ kind: 'supp', title: `${s.label}: ${s.sets} × ${s.reps}`, sets: [set(tm, pct, s.reps, { count: s.sets })] });
+        sections.push({ kind: 'supp', title: s.label, sets: [set(tm, pct, s.reps, { count: s.sets })] });
       }
       return { id: l.id, name: l.name, tm, sections };
     });

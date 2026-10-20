@@ -391,7 +391,7 @@ import { LIFTS } from '../lib/program.js';
     }).join('');
     const nxt = c.next.filter((n) => n.tm > 0).map((n) => `${esc(n.name)} ${fmt(n.next)}`).join(' · ');
     $('print-sheet').innerHTML = `<header class="ps-head"><p class="ps-title">5/3/1 program sheet</p><p>Weights in ${u}, bar ${Number.isFinite(bar) ? `${fmt(bar)} ${u}` : 'not set'}. Plates are per side. Start date: ______________ &nbsp; Plan: ${esc(opts)}.</p></header>` +
-      blocks + `<footer class="ps-foot">Next cycle training maxes (${u}): ${nxt || '-'}. Made with 531programcalculator.com. Unofficial tool. Not medical advice.</footer>`;
+      blocks + `<footer class="ps-foot">Next cycle training maxes (${u}): ${nxt || '-'}. Made with bingemind.com/531-program-calculator/. Unofficial tool. Not medical advice.</footer>`;
   }
   window.addEventListener('beforeprint', buildPrint);
 

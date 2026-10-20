@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "npm test && npm run build && node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/deploy.mjs",
-    "test": "node --test tests/program.test.mjs"
+    "test": "node --test tests/program.test.mjs",
+    "build:bingemind": "node scripts/build-bingemind.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

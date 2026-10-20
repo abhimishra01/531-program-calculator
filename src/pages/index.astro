@@ -8,7 +8,7 @@ import PrintSheet from '../components/PrintSheet.astro';
 import site from '../site.config.ts';
 import { faq } from '../data/faq.ts';
 
-const base = `https://${site.domain}`;
+const base = site.canonicalBase;
 const jsonLd = [
   {
     '@context': 'https://schema.org',

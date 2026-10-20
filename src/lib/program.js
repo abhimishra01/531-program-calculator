@@ -40,10 +40,10 @@ export const BUMP = { lb: { upper: 5, lower: 10 }, kg: { upper: 2.5, lower: 5 } 
 
 const roundTo = (w, step) => Math.round(w / step) * step;
 
-// Training max from what the person typed. A 1RM becomes pct percent of it, rounded to the unit step.
+// Training max from what the person typed. A 1RM becomes pct percent of it, rounded to the unit step (never below one step, so a tiny 1RM still gives a usable TM).
 export function trainingMax(value, mode, pct, unit) {
   if (!(value > 0)) return NaN;
-  return mode === 'tm' ? value : roundTo((value * pct) / 100, STEP[unit]);
+  return mode === 'tm' ? value : Math.max(STEP[unit], roundTo((value * pct) / 100, STEP[unit]));
 }
 
 // Build the whole cycle. loader.round(weight) gives the loadable total and plates.

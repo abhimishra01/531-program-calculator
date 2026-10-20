@@ -17,6 +17,7 @@ test('training max is 90 percent of 1RM, rounded to 5 lb', () => {
   assert.equal(trainingMax(300, 'rm', 90, 'lb'), 270);
   assert.equal(trainingMax(300, 'rm', 85, 'lb'), 255);
   assert.equal(trainingMax(140, 'rm', 90, 'kg'), 125); // 126 rounds to 125
+  assert.equal(trainingMax(2, 'rm', 90, 'lb'), 5); // a tiny 1RM never gives a zero TM
   assert.equal(trainingMax(300, 'tm', 90, 'lb'), 300); // a typed TM is used as is
   assert.ok(Number.isNaN(trainingMax(0, 'rm', 90, 'lb')));
   assert.ok(Number.isNaN(trainingMax(NaN, 'tm', 90, 'lb')));

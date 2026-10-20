@@ -1,0 +1,96 @@
+/* Skin: Retro print. Cream paper, 2px ink borders, hard offset shadows, slab headings, faint halftone.
+   Tokens first, then surface rules. Switched by data-skin="retro" on <html>. */
+:root[data-skin="retro"] {
+  --paper: #f1e6d2;
+  --card: #fbf4e6;
+  --ink: #241c17;
+  --muted: #5e4f44;
+  --line: #cdbda3;          /* hairlines, decoration only */
+  --edge: #241c17;          /* input and button edges (WCAG 1.4.11) */
+  --fill: #fffaf0;          /* input fill */
+  --shadow-ink: #241c17;
+  --dots: rgb(36 28 23 / .07);
+  --brand-ink: color-mix(in oklab, var(--brand) 85%, black);
+  --brand-soft: color-mix(in oklab, var(--brand) 14%, #fbf4e6);
+  --font-slab: Rockwell, "Roboto Slab", "Rockwell Nova", Clarendon, Georgia, serif;
+}
+:root[data-skin="retro"][data-theme="dark"] {
+  --paper: #1b1512;
+  --card: #261e19;
+  --ink: #f1e6d2;
+  --muted: #c2b2a2;
+  --line: #43362d;
+  --edge: #f1e6d2;
+  --fill: #1f1814;
+  --shadow-ink: #000000;
+  --dots: rgb(241 230 210 / .05);
+  --brand-ink: color-mix(in oklab, var(--brand) 50%, white);
+  --brand-soft: color-mix(in oklab, var(--brand) 28%, #261e19);
+}
+:root[data-skin="retro"][data-theme] body { background: transparent; }
+:root[data-skin="retro"][data-theme] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: radial-gradient(var(--dots) 1px, transparent 1.4px); background-size: 6px 6px; }
+:root[data-skin="retro"][data-theme] :focus-visible { outline: 3px solid var(--brand-ink); outline-offset: 2px; }
+
+/* Header, hero, footer */
+:root[data-skin="retro"][data-theme] header { border-bottom: 2px solid var(--ink); background: var(--paper); backdrop-filter: none; }
+:root[data-skin="retro"][data-theme] header img { border: 2px solid var(--ink); border-radius: 50%; }
+:root[data-skin="retro"][data-theme] header a:first-child { font-family: var(--font-slab); }
+:root[data-skin="retro"][data-theme] header nav a[aria-current="page"] { background: none; box-shadow: inset 0 -3px 0 var(--brand-ink); border-radius: 0; }
+:root[data-skin="retro"][data-theme] #theme-toggle { border: 2px solid var(--edge); background: var(--card); box-shadow: 2px 2px 0 var(--shadow-ink); }
+:root[data-skin="retro"][data-theme] main > section:first-child > p:first-child { border: 2px solid var(--ink); background: var(--card); color: var(--ink); text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; font-weight: 700; }
+:root[data-skin="retro"][data-theme] main h1 { font-family: var(--font-slab); font-weight: 700; letter-spacing: -0.01em; line-height: 1.02; }
+:root[data-skin="retro"][data-theme] .prose-site h2, :root[data-skin="retro"][data-theme] #faq-h { font-family: var(--font-slab); font-weight: 700; letter-spacing: 0; }
+:root[data-skin="retro"][data-theme] footer { border-top: 2px solid var(--ink); }
+:root[data-skin="retro"][data-theme] .prose-site th, :root[data-skin="retro"][data-theme] .tbl thead th { background: var(--brand-soft); }
+:root[data-skin="retro"][data-theme] .prose-site th, :root[data-skin="retro"][data-theme] .prose-site td { border-bottom: 1px solid var(--line); }
+:root[data-skin="retro"][data-theme] #faq-h + div { border-color: var(--ink); }
+
+/* 5/3/1 tool */
+:root[data-skin="retro"][data-theme] #tool { border: 2px solid var(--ink); border-radius: 14px; background: var(--card); box-shadow: 6px 6px 0 var(--shadow-ink); }
+:root[data-skin="retro"][data-theme] #tool legend:not(.sr-only), :root[data-skin="retro"][data-theme] #tool h2 { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; font-weight: 700; }
+:root[data-skin="retro"][data-theme] #tool h2 { font-family: var(--font-slab); font-size: 1rem; letter-spacing: .04em; }
+:root[data-skin="retro"][data-theme] #tool input[type="text"] { border: 2px solid var(--edge); border-radius: 8px; background: var(--fill); }
+:root[data-skin="retro"][data-theme] #tool input[type="text"]:focus { box-shadow: none; outline: 3px solid var(--brand-ink); outline-offset: 2px; }
+:root[data-skin="retro"][data-theme] .seg-face, :root[data-skin="retro"][data-theme] .plate-pill, :root[data-skin="retro"][data-theme] .btn { border: 2px solid var(--edge); border-radius: 10px; background: var(--card); box-shadow: 3px 3px 0 var(--shadow-ink); }
+:root[data-skin="retro"][data-theme] .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+:root[data-skin="retro"][data-theme] .peer:checked + .seg-face { background: var(--brand); border-color: var(--edge); color: #fff; box-shadow: none; transform: translate(3px, 3px); }
+:root[data-skin="retro"][data-theme] .peer:checked + .plate-pill { border-color: var(--edge); box-shadow: 3px 3px 0 var(--shadow-ink); }
+:root[data-skin="retro"][data-theme] .peer:not(:checked) + .plate-pill { box-shadow: none; }
+:root[data-skin="retro"][data-theme] fieldset:disabled .seg-face { box-shadow: none; }
+:root[data-skin="retro"][data-theme] .opt { border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); }
+:root[data-skin="retro"][data-theme] .opt-sum { font-family: var(--font-slab); }
+:root[data-skin="retro"][data-theme] .lift-card { border: 2px solid var(--ink); border-radius: 10px; background: var(--card); box-shadow: 4px 4px 0 var(--shadow-ink); }
+:root[data-skin="retro"][data-theme] .lift-card h3 { font-family: var(--font-slab); background: var(--brand); color: #fff; border-bottom: 2px solid var(--ink); }
+:root[data-skin="retro"][data-theme] .lift-card h3 span { color: #fff; }
+:root[data-skin="retro"][data-theme] .sched thead th { border-bottom: 1px solid var(--line); }
+:root[data-skin="retro"][data-theme] .next-box { border: 2px solid var(--ink); border-radius: 10px; background: var(--paper); }
+:root[data-skin="retro"][data-theme] .next-box h3 { font-family: var(--font-slab); }
+:root[data-skin="retro"][data-theme] .chk input { accent-color: var(--brand-ink); }
+
+/* Print: only the sheet. */
+@media print {
+  @page { size: landscape; margin: 9mm; }
+  :root[data-skin="retro"][data-theme] body::before { display: none; }
+  html, body { background: #fff !important; color: #000 !important; }
+  body > :not(main), main > :not(.print-sheet) { display: none !important; }
+  .print-sheet { display: block !important; font-family: ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif; font-size: 9pt; line-height: 1.3; color: #000; }
+  .ps-head h1 { font-size: 15pt; margin: 0 0 2pt; font-family: Rockwell, Georgia, serif; }
+  .ps-head p { margin: 0 0 6pt; font-size: 8.5pt; }
+  .ps-lift { break-inside: avoid; margin-bottom: 8pt; }
+  .ps-lift:nth-of-type(2) { break-after: page; }
+  .ps-lift h2 { font-size: 11.5pt; margin: 0 0 3pt; padding-bottom: 2pt; border-bottom: 1.5pt solid #000; font-family: Rockwell, Georgia, serif; }
+  .ps-lift h2 span { font-size: 8.5pt; font-weight: 400; font-family: ui-sans-serif, Arial, sans-serif; }
+  .ps-lift table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .ps-lift td { vertical-align: top; padding: 2pt 5pt 2pt 0; border-right: .5pt solid #999; }
+  .ps-lift td + td { padding-left: 5pt; }
+  .ps-lift td:last-child { border-right: 0; }
+  .ps-wk { font-weight: 700; font-size: 9pt; margin-bottom: 2pt; }
+  .ps-sec { font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; color: #444; margin-top: 3pt; }
+  .ps-line { font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; }
+  .ps-line b { font-size: 10pt; }
+  .ps-line i { font-style: normal; color: #444; font-size: 7.5pt; }
+  .ps-line u { text-decoration: none; color: #222; font-size: 7.5pt; }
+  .ps-top b { font-size: 11pt; }
+  .ps-box { font-size: 7.5pt; margin-left: 3pt; }
+  .ps-foot { font-size: 7.5pt; color: #333; margin-top: 4pt; border-top: .5pt solid #999; padding-top: 3pt; }
+}

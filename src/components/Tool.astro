@@ -1,0 +1,479 @@
+---
+// 5/3/1 program calculator UI. Logic lives in src/lib/program.js and src/lib/plates.js (tested by npm test).
+import { LIFTS } from '../lib/program.js';
+---
+<section id="tool" aria-label="5/3/1 program calculator" class="rounded-2xl border border-line bg-card p-4 sm:p-6 sm:shadow-[6px_6px_0_0_var(--line)]">
+  <noscript><p class="mb-4 rounded-xl bg-brand-soft p-3 text-sm">This calculator needs JavaScript. The tables below the tool show the weekly percents and a worked example you can read without it.</p></noscript>
+  <div class="grid gap-6 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] md:items-start md:gap-8">
+
+    <!-- Inputs -->
+    <div class="min-w-0 space-y-5">
+      <fieldset>
+        <legend class="mb-2 text-sm font-semibold">Units</legend>
+        <div class="grid grid-cols-2 gap-2" id="unit-group">
+          <label class="seg"><input type="radio" name="unit" value="lb" class="peer sr-only" checked /><span class="seg-face">Pounds (lb)</span></label>
+          <label class="seg"><input type="radio" name="unit" value="kg" class="peer sr-only" /><span class="seg-face">Kilograms (kg)</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="mb-2 text-sm font-semibold">The numbers I enter are</legend>
+        <div class="grid grid-cols-2 gap-2" id="mode-group">
+          <label class="seg"><input type="radio" name="mode" value="rm" class="peer sr-only" checked /><span class="seg-face">One-rep max</span></label>
+          <label class="seg"><input type="radio" name="mode" value="tm" class="peer sr-only" /><span class="seg-face">Training max</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset id="tmpct-wrap">
+        <legend class="mb-2 text-sm font-semibold">Training max is this share of the 1RM</legend>
+        <div class="grid grid-cols-2 gap-2" id="tmpct-group">
+          <label class="seg"><input type="radio" name="tmpct" value="90" class="peer sr-only" checked /><span class="seg-face">90%</span></label>
+          <label class="seg"><input type="radio" name="tmpct" value="85" class="peer sr-only" /><span class="seg-face">85%</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="mb-2 text-sm font-semibold">Your lifts <span id="lift-kind" class="font-normal text-muted">(1RM)</span></legend>
+        <div class="grid grid-cols-2 gap-3" id="lift-inputs">
+          {LIFTS.map((l) => (
+            <div>
+              <label for={`in-${l.id}`} class="mb-1 block text-sm font-semibold">{l.name}</label>
+              <input id={`in-${l.id}`} data-lift={l.id} type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-describedby={`tm-${l.id}`}
+                class="lift-in h-14 w-full min-w-0 rounded-xl border border-edge bg-paper px-3 text-center font-mono text-2xl font-bold tabular-nums outline-none focus:border-brand focus:ring-2 focus:ring-brand/30 aria-[invalid=true]:border-red-600" />
+              <p id={`tm-${l.id}`} class="mt-1 min-h-[1.25rem] text-xs text-muted"></p>
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
+      <a href="#results" class="btn flex items-center justify-center no-underline md:hidden">Jump to your cycle</a>
+
+      <details id="opt-plan" class="opt rounded-xl border border-line">
+        <summary class="opt-sum"><span class="whitespace-nowrap font-semibold">Plan options</span><span id="plan-sum" class="min-w-0 truncate text-sm text-muted"></span></summary>
+        <div class="space-y-5 p-3 pt-1">
+          <fieldset>
+            <legend class="mb-2 text-sm font-semibold">Week order</legend>
+            <div class="grid grid-cols-2 gap-2" id="order-group">
+              <label class="seg"><input type="radio" name="order" value="531" class="peer sr-only" checked /><span class="seg-face">5/3/1</span></label>
+              <label class="seg"><input type="radio" name="order" value="351" class="peer sr-only" /><span class="seg-face">3/5/1</span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend class="mb-2 text-sm font-semibold">Main sets</legend>
+            <div class="grid grid-cols-2 gap-2" id="main-group">
+              <label class="seg"><input type="radio" name="main" value="std" class="peer sr-only" checked /><span class="seg-face">Standard</span></label>
+              <label class="seg"><input type="radio" name="main" value="pro" class="peer sr-only" /><span class="seg-face">5s PRO</span></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend class="mb-2 text-sm font-semibold">Supplemental sets</legend>
+            <div class="grid grid-cols-4 gap-2" id="supp-group">
+              <label class="seg"><input type="radio" name="supp" value="none" class="peer sr-only" checked /><span class="seg-face">None</span></label>
+              <label class="seg"><input type="radio" name="supp" value="bbb" class="peer sr-only" /><span class="seg-face">BBB</span></label>
+              <label class="seg"><input type="radio" name="supp" value="fsl" class="peer sr-only" /><span class="seg-face">FSL</span></label>
+              <label class="seg"><input type="radio" name="supp" value="ssl" class="peer sr-only" /><span class="seg-face">SSL</span></label>
+            </div>
+          </fieldset>
+          <fieldset id="bbb-wrap">
+            <legend class="mb-2 text-sm font-semibold">BBB weight, share of the TM</legend>
+            <div class="grid grid-cols-3 gap-2" id="bbb-group">
+              <label class="seg"><input type="radio" name="bbb" value="50" class="peer sr-only" checked /><span class="seg-face">50%</span></label>
+              <label class="seg"><input type="radio" name="bbb" value="60" class="peer sr-only" /><span class="seg-face">60%</span></label>
+              <label class="seg"><input type="radio" name="bbb" value="70" class="peer sr-only" /><span class="seg-face">70%</span></label>
+            </div>
+          </fieldset>
+          <div class="space-y-1">
+            <label class="chk"><input id="warm" type="checkbox" checked /> Warm-up sets</label>
+            <label class="chk"><input id="joker" type="checkbox" /> Joker sets</label>
+            <label class="chk"><input id="deload" type="checkbox" checked /> Deload week (week 4)</label>
+          </div>
+        </div>
+      </details>
+
+      <details id="opt-bar" class="opt rounded-xl border border-line">
+        <summary class="opt-sum"><span class="whitespace-nowrap font-semibold">Bar and plates</span><span id="bar-sum" class="min-w-0 truncate text-sm text-muted"></span></summary>
+        <div class="space-y-5 p-3 pt-1">
+          <fieldset>
+            <legend class="mb-2 text-sm font-semibold">Bar</legend>
+            <div class="flex flex-wrap gap-2" id="bar-group"></div>
+            <div id="custom-bar-wrap" class="mt-2 hidden items-center gap-2">
+              <label for="custom-bar" class="text-sm text-muted">Bar weight</label>
+              <input id="custom-bar" type="text" inputmode="decimal" autocomplete="off" value="25"
+                class="h-12 w-28 rounded-xl border border-edge bg-paper px-3 text-center font-mono text-lg font-semibold tabular-nums outline-none focus:border-brand focus:ring-2 focus:ring-brand/30 aria-[invalid=true]:border-red-600" />
+              <span id="custom-bar-unit" class="text-sm text-muted">lb</span>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend class="mb-1 text-sm font-semibold">Plates you have</legend>
+            <p class="mb-2 text-sm text-muted">Tap a plate to turn it off. Weights round to loads these plates can make.</p>
+            <div id="plate-group" class="flex flex-wrap gap-2"></div>
+          </fieldset>
+        </div>
+      </details>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="min-w-0 scroll-mt-20">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-lg font-bold tracking-tight">Your cycle</h2>
+        <button type="button" id="print" class="btn">Print sheet</button>
+      </div>
+      <fieldset class="mt-3">
+        <legend class="sr-only">Week to show</legend>
+        <div id="week-tabs" class="grid grid-cols-4 gap-2"></div>
+      </fieldset>
+      <p id="week-status" role="status" aria-live="polite" class="mt-3 min-h-[2.75rem] text-sm text-muted"></p>
+      <div id="lifts" class="mt-2 grid gap-4 sm:grid-cols-2"></div>
+      <section id="next" aria-labelledby="next-h" class="next-box mt-5 rounded-xl border border-line p-4"></section>
+    </div>
+  </div>
+</section>
+
+<style is:global>
+  .seg-face { display:flex; flex-direction:column; min-height:3rem; align-items:center; justify-content:center; border-radius:.75rem; border:1px solid var(--edge); background:var(--paper); padding:.4rem .6rem; font-weight:600; font-size:.95rem; cursor:pointer; text-align:center; transition:background-color .12s,border-color .12s; user-select:none; line-height:1.15; }
+  .seg-face:hover { border-color: var(--brand); }
+  .peer:checked + .seg-face { background: var(--brand); border-color: var(--brand); color:#fff; }
+  .peer:focus-visible + .seg-face { outline:2px solid var(--brand-ink); outline-offset:2px; }
+  fieldset:disabled { opacity:.5; }
+  fieldset:disabled .seg-face { cursor:not-allowed; }
+  .seg-face small { display:block; font-size:.72rem; font-weight:500; opacity:.85; }
+  .plate-pill { display:flex; min-height:3rem; align-items:center; gap:.5rem; border-radius:.75rem; border:1px solid var(--edge); background:var(--paper); padding:.35rem .8rem .35rem .6rem; font-weight:600; font-size:.95rem; cursor:pointer; user-select:none; font-variant-numeric:tabular-nums; }
+  .plate-pill .dot { width:1.25rem; height:1.25rem; border-radius:999px; border:2px solid rgba(0,0,0,.35); flex:none; }
+  .peer:not(:checked) + .plate-pill { opacity:.72; text-decoration:line-through; text-decoration-color: var(--muted); }
+  .peer:not(:checked) + .plate-pill .dot { filter:grayscale(1); opacity:.5; }
+  .peer:checked + .plate-pill { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+  .peer:focus-visible + .plate-pill { outline:2px solid var(--brand-ink); outline-offset:2px; }
+  .opt-sum { display:flex; min-height:3rem; cursor:pointer; list-style:none; align-items:center; justify-content:space-between; gap:.75rem; padding:.5rem .75rem; }
+  .opt-sum::-webkit-details-marker { display:none; }
+  .opt-sum::after { content:""; width:.6rem; height:.6rem; flex:none; border-right:2px solid var(--muted); border-bottom:2px solid var(--muted); transform:rotate(45deg) translateY(-2px); transition:transform .15s; }
+  .opt[open] > .opt-sum::after { transform:rotate(-135deg) translateY(-2px); }
+  .opt-sum > span:nth-child(2) { margin-left:auto; }
+  .chk { display:flex; min-height:3rem; align-items:center; gap:.75rem; font-size:.95rem; font-weight:600; cursor:pointer; }
+  .chk input { width:1.5rem; height:1.5rem; flex:none; accent-color: var(--brand); }
+  .btn { min-height:2.75rem; padding:.4rem 1rem; border-radius:.75rem; border:1px solid var(--edge); background:var(--paper); font-weight:600; font-size:.95rem; cursor:pointer; color:var(--ink); }
+  .btn:hover { border-color: var(--brand); }
+  .btn-brand { border-color: var(--brand); background: var(--brand); color:#fff; }
+  .lift-card { min-width:0; border:1px solid var(--line); border-radius:.75rem; background:var(--paper); overflow:hidden; }
+  .lift-card h3 { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; padding:.7rem .85rem .5rem; font-size:1.05rem; font-weight:700; }
+  .lift-card h3 span { font-size:.8rem; font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .sched { width:100%; border-collapse:collapse; font-size:.9rem; font-variant-numeric:tabular-nums; }
+  .sched thead th { padding:.35rem .6rem; text-align:left; font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; background:var(--brand-soft); color:var(--brand-ink); font-weight:700; }
+  .sched thead th:nth-child(2) { text-align:right; }
+  .sched tbody th[scope=colgroup] { padding:.5rem .6rem .15rem; text-align:left; font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .sched tbody th[scope=row] { padding:.4rem .6rem; text-align:left; font-weight:500; white-space:nowrap; }
+  .sched td { padding:.4rem .6rem; vertical-align:top; }
+  .sched td.w { text-align:right; font-family:var(--font-mono); font-weight:700; font-size:1rem; }
+  .sched td.p { color:var(--muted); font-size:.82rem; }
+  .sched tr.main th[scope=row], .sched tr.main td.w { font-weight:700; }
+  .sched tr.main td.w { color:var(--brand-ink); }
+  .sched tr.top th[scope=row] { color:var(--brand-ink); font-weight:800; }
+  .sched tbody tr + tr th[scope=row], .sched tbody tr + tr td { border-top:1px solid color-mix(in oklab, var(--line) 60%, transparent); }
+  .sched tbody tr:has(th[scope=colgroup]) th, .sched tbody tr:has(th[scope=colgroup]) + tr th, .sched tbody tr:has(th[scope=colgroup]) + tr td { border-top:0; }
+  .next-box h3 { font-size:1rem; font-weight:700; }
+  .next-tbl { width:100%; max-width:30rem; margin-top:.5rem; border-collapse:collapse; font-size:.95rem; font-variant-numeric:tabular-nums; }
+  .next-tbl th, .next-tbl td { padding:.35rem .5rem .35rem 0; text-align:left; }
+  .next-tbl thead th { font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .next-tbl td.n { font-family:var(--font-mono); font-weight:700; }
+  .print-sheet { display:none; }
+</style>
+<script>
+  import { PLATES, DEFAULT_PLATES, BARS, STEP, MAX_WEIGHT, makeLoader, convertRounded, parseNumber, describe, fmt } from '../lib/plates.js';
+  import { LIFTS, buildCycle, BBB_PCTS, SUPP } from '../lib/program.js';
+
+  type Unit = 'lb' | 'kg';
+  type Vals = Record<string, number>;
+  const COLORS: Record<Unit, Record<string, string>> = {
+    lb: { '45': '#1d4ed8', '35': '#facc15', '25': '#16a34a', '10': '#f1f1ee', '5': '#dc2626', '2.5': '#475569', '1.25': '#a8a29e' },
+    kg: { '25': '#dc2626', '20': '#1d4ed8', '15': '#facc15', '10': '#16a34a', '5': '#f1f1ee', '2.5': '#475569', '1.25': '#a8a29e' },
+  };
+  const DEFAULT_CUSTOM: Record<Unit, number> = { lb: 25, kg: 10 };
+  const DEFAULTS: Record<Unit, Vals> = {
+    lb: { squat: 315, bench: 225, deadlift: 405, press: 135 },
+    kg: { squat: 140, bench: 100, deadlift: 180, press: 60 },
+  };
+  const KEY = 'five31-v1';
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const show = (id: string, on: boolean) => { $(id).classList.toggle('hidden', !on); $(id).classList.toggle('flex', on); };
+  const isWeight = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0 && x <= MAX_WEIGHT;
+  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+
+  const state = {
+    unit: 'lb' as Unit,
+    mode: 'rm' as 'rm' | 'tm',
+    tmPct: 90,
+    lifts: { ...DEFAULTS.lb } as Vals,
+    order: '531' as '531' | '351',
+    main: 'std' as 'std' | 'pro',
+    supp: 'none' as 'none' | 'bbb' | 'fsl' | 'ssl',
+    bbbPct: 50,
+    warm: true,
+    joker: false,
+    deload: true,
+    week: 0,
+    bar: { lb: '45', kg: '20' } as Record<Unit, string>,
+    customBar: { ...DEFAULT_CUSTOM } as Record<Unit, number>,
+    plates: { lb: [...DEFAULT_PLATES.lb], kg: [...DEFAULT_PLATES.kg] } as Record<Unit, number[]>,
+  };
+
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (s && typeof s === 'object') {
+      if (s.unit === 'lb' || s.unit === 'kg') state.unit = s.unit;
+      if (s.mode === 'rm' || s.mode === 'tm') state.mode = s.mode;
+      if (s.tmPct === 90 || s.tmPct === 85) state.tmPct = s.tmPct;
+      state.lifts = {};
+      for (const l of LIFTS) state.lifts[l.id] = s.lifts && isWeight(s.lifts[l.id]) ? s.lifts[l.id] : NaN;
+      if (LIFTS.every((l) => Number.isNaN(state.lifts[l.id]))) state.lifts = { ...DEFAULTS[state.unit] };
+      if (s.order === '531' || s.order === '351') state.order = s.order;
+      if (s.main === 'std' || s.main === 'pro') state.main = s.main;
+      if (['none', 'bbb', 'fsl', 'ssl'].includes(s.supp)) state.supp = s.supp;
+      if (BBB_PCTS.includes(s.bbbPct)) state.bbbPct = s.bbbPct;
+      state.warm = s.warm !== false;
+      state.joker = s.joker === true;
+      state.deload = s.deload !== false;
+      for (const u of ['lb', 'kg'] as Unit[]) {
+        if (s.bar && typeof s.bar[u] === 'string' && (s.bar[u] === 'custom' || (BARS[u] as number[]).map(String).includes(s.bar[u]))) state.bar[u] = s.bar[u];
+        if (s.customBar && isWeight(s.customBar[u])) state.customBar[u] = s.customBar[u];
+        if (s.plates && Array.isArray(s.plates[u])) state.plates[u] = s.plates[u].filter((w: unknown) => (PLATES[u] as number[]).includes(w as number));
+      }
+    }
+  } catch {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+
+  // The numbers the person last typed, so a unit round trip returns to them (315 lb, 140 kg, 315 lb).
+  let anchor = { unit: state.unit, lifts: { ...state.lifts } };
+
+  const barWeight = () => {
+    const id = state.bar[state.unit];
+    return id === 'custom' ? state.customBar[state.unit] : Number(id);
+  };
+  const checkRadio = (name: string, value: string) => {
+    const el = document.querySelector<HTMLInputElement>(`input[name=${name}][value="${value}"]`);
+    if (el) el.checked = true;
+  };
+
+  // Refresh every control from the state. Does not move focus.
+  function buildStatic() {
+    const u = state.unit;
+    checkRadio('unit', u); checkRadio('mode', state.mode); checkRadio('tmpct', String(state.tmPct));
+    checkRadio('order', state.order); checkRadio('main', state.main); checkRadio('supp', state.supp); checkRadio('bbb', String(state.bbbPct));
+    $<HTMLInputElement>('warm').checked = state.warm;
+    $<HTMLInputElement>('joker').checked = state.joker;
+    $<HTMLInputElement>('deload').checked = state.deload;
+    $('lift-kind').textContent = `(${state.mode === 'rm' ? '1RM' : 'TM'}, ${u})`;
+    for (const l of LIFTS) { const v = state.lifts[l.id]; $<HTMLInputElement>(`in-${l.id}`).value = v > 0 ? fmt(v) : ''; }
+    $('custom-bar-unit').textContent = u;
+    $<HTMLInputElement>('custom-bar').value = fmt(state.customBar[u]);
+    const bars = [...(BARS[u] as number[]).map((w) => ({ id: String(w), label: `${w} ${u}` })), { id: 'custom', label: 'Custom' }];
+    $('bar-group').innerHTML = bars.map((b) =>
+      `<label class="seg"><input type="radio" name="bar" value="${b.id}" class="peer sr-only"${b.id === state.bar[u] ? ' checked' : ''} /><span class="seg-face" style="min-width:4.5rem">${b.label}</span></label>`).join('');
+    show('custom-bar-wrap', state.bar[u] === 'custom');
+    $('plate-group').innerHTML = PLATES[u].map((w) =>
+      `<label><input type="checkbox" name="plate" value="${w}" class="peer sr-only"${state.plates[u].includes(w) ? ' checked' : ''} /><span class="plate-pill"><span class="dot" style="background:${COLORS[u][String(w)]}"></span>${fmt(w)} ${u}</span></label>`).join('');
+    syncDisabled();
+  }
+  function syncDisabled() {
+    ($('tmpct-wrap') as HTMLFieldSetElement).disabled = state.mode === 'tm';
+    ($('bbb-wrap') as HTMLFieldSetElement).disabled = state.supp !== 'bbb';
+  }
+
+  const rowHtml = (label: string, w: number, side: string, cls = '') =>
+    `<tr class="${cls}"><th scope="row">${label}</th><td class="w">${fmt(w)}</td><td class="p">${side}</td></tr>`;
+  const setLabel = (s: any, count = false) =>
+    count ? `${s.count} × ${s.reps} at ${s.pct}%` : `${s.pct}% × ${s.reps}${s.amrap ? '+' : ''}`;
+
+  function cycle() {
+    const u = state.unit;
+    const bar = barWeight();
+    const loader = makeLoader({ bar: Number.isFinite(bar) ? bar : 0, plates: state.plates[u], unit: u });
+    const c = buildCycle({
+      unit: u, mode: state.mode, tmPct: state.tmPct, values: state.lifts, order: state.order, main: state.main, supp: state.supp,
+      bbbPct: state.bbbPct, warm: state.warm, joker: state.joker, deload: state.deload, loader,
+    });
+    return { c, bar, loader };
+  }
+
+  function sectionsHtml(sections: any[], showPlates: boolean) {
+    return sections.map((sec) => {
+      const rows = sec.sets.map((s: any) => {
+        const top = sec.kind === 'work' && s.amrap;
+        const label = setLabel(s, sec.kind === 'supp');
+        return rowHtml(label, s.weight, showPlates ? describe(s.list) : '', (sec.kind === 'work' ? 'main' : '') + (top ? ' top' : ''));
+      }).join('');
+      return `<tr><th scope="colgroup" colspan="3">${esc(sec.title)}</th></tr>${rows}`;
+    }).join('');
+  }
+
+  function render() {
+    const u = state.unit;
+    const { c, bar, loader } = cycle();
+    if (state.week > c.weeks.length - 1) state.week = c.weeks.length - 1;
+
+    // Week tabs
+    $('week-tabs').innerHTML = c.weeks.map((w, i) =>
+      `<label class="seg"><input type="radio" name="week" value="${i}" class="peer sr-only"${i === state.week ? ' checked' : ''} /><span class="seg-face">Week ${w.number}<small>${esc(w.label)}</small></span></label>`).join('')
+      ;
+    ($('week-tabs') as HTMLElement).style.gridTemplateColumns = `repeat(${c.weeks.length}, minmax(0, 1fr))`;
+
+    const week = c.weeks[state.week];
+    const badBar = !Number.isFinite(bar);
+    const anyLift = week.lifts.some((l) => l.sections.length);
+    const status = $('week-status');
+    $('lift-kind').textContent = `(${state.mode === 'rm' ? '1RM' : 'TM'}, ${u})`;
+    if (badBar) {
+      status.textContent = 'Enter the bar weight to see the weights.';
+    } else if (!anyLift) {
+      status.textContent = 'Enter at least one lift to see the cycle.';
+    } else {
+      const tops = week.lifts.filter((l) => l.sections.length).map((l) => {
+        const w = l.sections.find((s: any) => s.kind === 'work')!.sets[2];
+        return `${l.name} ${fmt(w.weight)}${w.amrap ? ` for ${w.reps}+` : ''}`;
+      });
+      status.textContent = `Week ${week.number}, ${week.label}. Top sets in ${u}: ${tops.join(', ')}.` + (loader.noPlates ? ' No plates are on, so weights round to the nearest ' + STEP[u] + ' ' + u + '.' : '');
+    }
+
+    // Lift cards
+    const showPlates = !loader.noPlates;
+    $('lifts').innerHTML = week.lifts.map((l) => {
+      if (!l.sections.length) {
+        return `<article class="lift-card"><h3>${esc(l.name)}</h3><p class="px-3 pb-4 text-sm text-muted">Enter a number to see this lift.</p></article>`;
+      }
+      return `<article class="lift-card"><h3>${esc(l.name)}<span>TM ${fmt(l.tm)} ${u}</span></h3>` +
+        `<table class="sched"><caption class="sr-only">${esc(l.name)}, week ${week.number}: ${esc(week.label)}</caption>` +
+        `<thead><tr><th scope="col">Set</th><th scope="col">${u}</th><th scope="col">${showPlates ? 'Each side' : ''}</th></tr></thead>` +
+        `<tbody>${sectionsHtml(l.sections, showPlates)}</tbody></table></article>`;
+    }).join('');
+
+    // Training max captions under each input
+    for (const l of c.next) {
+      const el = $(`tm-${l.id}`);
+      const raw = state.lifts[l.id];
+      el.textContent = l.tm > 0 ? (state.mode === 'rm' ? `Training max ${fmt(l.tm)} ${u}` : '') : (Number.isNaN(raw) ? 'Enter a number' : '');
+    }
+
+    // Next cycle
+    $('next').innerHTML = `<h3 id="next-h">Next cycle training maxes</h3>` +
+      `<table class="next-tbl"><caption class="sr-only">Training max now and after this cycle</caption><thead><tr><th scope="col">Lift</th><th scope="col">Now (${u})</th><th scope="col">Next (${u})</th></tr></thead><tbody>` +
+      c.next.map((n) => `<tr><th scope="row" class="font-medium">${esc(n.name)}</th><td class="n">${n.tm > 0 ? fmt(n.tm) : '-'}</td><td class="n">${n.tm > 0 ? `${fmt(n.next)} <span class="font-sans text-xs font-medium text-muted">+${fmt(n.bump)}</span>` : '-'}</td></tr>`).join('') +
+      `</tbody></table><p class="mt-2 text-sm text-muted">Add ${fmt(c.next[1].bump)} ${u} to bench press and overhead press, and ${fmt(c.next[0].bump)} ${u} to squat and deadlift, after the last week.</p>` +
+      `<button type="button" id="apply-next" class="btn mt-3">Use these as my training maxes</button>`;
+
+    // Summaries on the closed option panels
+    const suppTxt = state.supp === 'none' ? 'No supplemental' : state.supp === 'bbb' ? `BBB ${state.bbbPct}%` : state.supp.toUpperCase();
+    $('plan-sum').textContent = `${state.order === '531' ? '5/3/1' : '3/5/1'} · ${state.main === 'pro' ? '5s PRO' : 'Standard'} · ${suppTxt}`;
+    $('bar-sum').textContent = Number.isFinite(bar) ? `${fmt(bar)} ${u} bar` : 'Enter bar weight';
+    save();
+  }
+
+  // Print sheet: all weeks, all lifts. Built just before printing.
+  function buildPrint() {
+    const u = state.unit;
+    const { c, bar, loader } = cycle();
+    const showPlates = !loader.noPlates;
+    const suppTxt = state.supp === 'none' ? 'no supplemental sets' : state.supp === 'bbb' ? `BBB 5 × 10 at ${state.bbbPct}%` : `${state.supp.toUpperCase()} 5 × 5`;
+    const opts = [state.order === '531' ? '5/3/1 order' : '3/5/1 order', state.main === 'pro' ? '5s PRO' : 'standard sets', suppTxt,
+      state.joker ? 'joker sets' : 'no jokers', state.warm ? 'warm-ups' : 'no warm-ups', state.deload ? 'with deload' : 'no deload'].join(', ');
+    const lines = (sections: any[]) => sections.map((sec) =>
+      `<div class="ps-sec">${esc(sec.kind === 'work' ? 'Main' : sec.title)}</div>` + sec.sets.map((s: any) => {
+        const reps = sec.kind === 'supp' ? `${s.count}×${s.reps}` : `${s.reps}${s.amrap ? '+' : ''}`;
+        return `<div class="ps-line${s.amrap ? ' ps-top' : ''}"><b>${fmt(s.weight)}</b> × ${reps} <i>${s.pct}%</i>${showPlates && s.list.length ? ` <u>${describe(s.list)}</u>` : ''}${s.amrap ? ' <span class="ps-box">reps: ____</span>' : ''}</div>`;
+      }).join('')).join('');
+    const blocks = LIFTS.map((l, li) => {
+      const first = c.weeks[0].lifts[li];
+      if (!first.sections.length) return '';
+      const cols = c.weeks.map((w) => `<td><div class="ps-wk">Week ${w.number}: ${esc(w.label)}</div>${lines(w.lifts[li].sections)}</td>`).join('');
+      return `<section class="ps-lift"><h2>${esc(l.name)} <span>training max ${fmt(first.tm)} ${u}</span></h2><table><tbody><tr>${cols}</tr></tbody></table></section>`;
+    }).join('');
+    const nxt = c.next.filter((n) => n.tm > 0).map((n) => `${esc(n.name)} ${fmt(n.next)}`).join(' · ');
+    $('print-sheet').innerHTML = `<header class="ps-head"><h1>5/3/1 program sheet</h1><p>Weights in ${u}, bar ${Number.isFinite(bar) ? fmt(bar) : '?'} ${u}. Plates are per side. Start date: ______________ &nbsp; Plan: ${esc(opts)}.</p></header>` +
+      blocks + `<footer class="ps-foot">Next cycle training maxes (${u}): ${nxt || '-'}. Made with 531programcalculator.com. Unofficial tool. Not medical advice.</footer>`;
+  }
+  window.addEventListener('beforeprint', buildPrint);
+
+  // Events
+  function onLift(el: HTMLInputElement) {
+    const id = el.dataset.lift as string;
+    const v = parseNumber(el.value);
+    const ok = v > 0 && v <= MAX_WEIGHT;
+    el.setAttribute('aria-invalid', String(el.value.trim() !== '' && !ok));
+    state.lifts[id] = ok ? v : NaN;
+    anchor = { unit: state.unit, lifts: { ...state.lifts } };
+    render();
+  }
+  document.querySelectorAll<HTMLInputElement>('.lift-in').forEach((el) => {
+    el.addEventListener('input', () => onLift(el));
+    el.addEventListener('blur', () => { const v = state.lifts[el.dataset.lift as string]; if (v > 0) { el.value = fmt(v); el.removeAttribute('aria-invalid'); } });
+    el.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const id = el.dataset.lift as string;
+      const cur = state.lifts[id] > 0 ? state.lifts[id] : 0;
+      const next = Math.min(MAX_WEIGHT, Math.max(STEP[state.unit], cur + (e.key === 'ArrowUp' ? 1 : -1) * STEP[state.unit]));
+      el.value = fmt(next);
+      onLift(el);
+    });
+  });
+
+  const radio = (groupId: string, fn: (v: string) => void) =>
+    $(groupId).addEventListener('change', (e) => { fn((e.target as HTMLInputElement).value); render(); });
+
+  $('unit-group').addEventListener('change', (e) => {
+    const to = (e.target as HTMLInputElement).value as Unit;
+    if (to === state.unit) return;
+    const next: Vals = {};
+    for (const l of LIFTS) next[l.id] = anchor.unit === to ? anchor.lifts[l.id] : convertRounded(state.lifts[l.id], state.unit, to);
+    state.lifts = next;
+    state.unit = to;
+    buildStatic(); render();
+  });
+  $('mode-group').addEventListener('change', (e) => {
+    state.mode = (e.target as HTMLInputElement).value as 'rm' | 'tm';
+    syncDisabled(); render();
+  });
+  radio('tmpct-group', (v) => { state.tmPct = Number(v); });
+  radio('order-group', (v) => { state.order = v as '531' | '351'; });
+  radio('main-group', (v) => { state.main = v as 'std' | 'pro'; });
+  $('supp-group').addEventListener('change', (e) => { state.supp = (e.target as HTMLInputElement).value as any; syncDisabled(); render(); });
+  radio('bbb-group', (v) => { state.bbbPct = Number(v); });
+  $('week-tabs').addEventListener('change', (e) => { state.week = Number((e.target as HTMLInputElement).value); render(); });
+  for (const id of ['warm', 'joker', 'deload']) {
+    $(id).addEventListener('change', (e) => { (state as any)[id] = (e.target as HTMLInputElement).checked; render(); });
+  }
+  $('bar-group').addEventListener('change', (e) => {
+    state.bar[state.unit] = (e.target as HTMLInputElement).value;
+    show('custom-bar-wrap', state.bar[state.unit] === 'custom');
+    render();
+  });
+  const cb = $<HTMLInputElement>('custom-bar');
+  cb.addEventListener('input', () => {
+    const v = parseNumber(cb.value);
+    state.customBar[state.unit] = v >= 0 && v <= MAX_WEIGHT ? v : NaN;
+    cb.setAttribute('aria-invalid', String(!Number.isFinite(state.customBar[state.unit])));
+    render();
+  });
+  cb.addEventListener('blur', () => {
+    if (!Number.isFinite(state.customBar[state.unit])) { state.customBar[state.unit] = DEFAULT_CUSTOM[state.unit]; render(); }
+    cb.value = fmt(state.customBar[state.unit]);
+    cb.removeAttribute('aria-invalid');
+  });
+  $('plate-group').addEventListener('change', () => {
+    state.plates[state.unit] = Array.from(document.querySelectorAll<HTMLInputElement>('input[name=plate]:checked')).map((i) => Number(i.value));
+    render();
+  });
+  $('print').addEventListener('click', () => window.print());
+  $('next').addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('#apply-next')) return;
+    const { c } = cycle();
+    const next: Vals = {};
+    for (const n of c.next) next[n.id] = n.next;
+    state.lifts = next; state.mode = 'tm'; state.week = 0;
+    anchor = { unit: state.unit, lifts: { ...state.lifts } };
+    buildStatic(); render();
+    $('week-status').textContent = 'Training maxes updated. Week 1 of the next cycle is shown.';
+  });
+
+  if (matchMedia('(min-width: 768px)').matches) { $<HTMLDetailsElement>('opt-plan').open = true; $<HTMLDetailsElement>('opt-bar').open = true; }
+  buildStatic();
+  render();
+</script>

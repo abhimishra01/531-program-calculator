@@ -1,0 +1,19 @@
+---
+import Page from '../layouts/Page.astro';
+import site from '../site.config.ts';
+import { url } from '../lib/url.ts';
+---
+<Page title="About" description={`About ${site.name}: a free calculator for the 4-week 5/3/1 strength cycle.`}>
+  <p>{site.name} builds the full 4-week 5/3/1 cycle for the squat, bench press, deadlift and overhead press. You enter your numbers. It shows every set, the weight on the bar and the plates to load on each side.</p>
+  <h2>What it does</h2>
+  <p>It gives the answer as you type. You can choose the 5/3/1 or 3/5/1 week order, standard or 5s PRO main sets, one of three supplemental plans (BBB, FSL or SSL), joker sets, warm-up sets and a deload week. It shows the training maxes for the next cycle and prints a sheet for all four lifts.</p>
+  <h2>How it works</h2>
+  <p>The tool takes a training max (TM). If you enter a one-rep max, the TM is 90 percent of it (or 85 percent, if you choose that), rounded to 5 lb or 2.5 kg. Each set is a percent of the TM. The tool rounds each set to the closest weight your bar and plates can make.</p>
+  <p>The calculator runs in your browser and does not send what you type. We do not ask you to create an account. Your settings stay on your device.</p>
+  <h2>Unofficial</h2>
+  <p>The 5/3/1 method comes from the book <em>5/3/1</em> by Jim Wendler. This site is an independent tool. It is not affiliated with or endorsed by the author or the publisher.</p>
+  <h2>A note on safety</h2>
+  <p>This tool does arithmetic. It is not medical advice and it does not replace a coach. Talk to a doctor before you start a hard program if you have a health concern. Use collars, check that plates sit fully on the sleeve, and ask for a spotter on heavy sets.</p>
+  <h2>Contact</h2>
+  <p>Questions or ideas? Write to <a href={`mailto:${site.email}`}>{site.email}</a> or visit the <a href={url('contact/')}>Contact page</a>.</p>
+</Page>

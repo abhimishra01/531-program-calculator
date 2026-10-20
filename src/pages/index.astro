@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import Tool from '../components/Tool.astro';
+import AdSlot from '../components/AdSlot.astro';
+import Article from '../components/Article.astro';
+import Faq from '../components/Faq.astro';
+import PrintSheet from '../components/PrintSheet.astro';
+import site from '../site.config.ts';
+import { faq } from '../data/faq.ts';
+
+const base = `https://${site.domain}`;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: site.name,
+    url: `${base}/`,
+    description: site.description,
+    applicationCategory: site.category,
+    featureList: '4-week cycle, 5/3/1 and 3/5/1 order, 5s PRO, BBB, FSL, SSL, joker sets, deload, plate rounding, plates per side, next-cycle training max, print sheet',
+    operatingSystem: 'Any',
+    browserRequirements: 'Requires JavaScript',
+    inLanguage: site.locale,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+<Base jsonLd={jsonLd}>
+  <section class="mx-auto max-w-5xl px-4 pt-10 sm:pt-16">
+    <h1 class="max-w-3xl text-3xl font-extrabold leading-[1.05] tracking-tight [text-wrap:balance] sm:text-6xl">
+      {site.h1}
+    </h1>
+    <p class="mt-4 hidden max-w-2xl text-lg text-muted sm:block">{site.description}</p>
+    <div class="mt-5 min-h-[72rem] sm:mt-8 md:min-h-[58rem]"><Tool /></div>
+    <AdSlot />
+  </section>
+  <Article />
+  <Faq />
+  <PrintSheet />
+</Base>
